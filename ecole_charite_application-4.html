@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#087f5b">
+<title>École Charité — Bobo-Dioulasso</title>
+<style>
+:root{--green:#087f5b;--blue:#174ea6;--ink:#17202a;--muted:#637381;--paper:#f3f7f5}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--paper);line-height:1.6}
+header{background:linear-gradient(135deg,#075b43,#0b8c65);color:white;padding:16px 5%;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:1.15rem}
+nav{display:flex;gap:12px;flex-wrap:wrap}nav a{color:white;text-decoration:none;font-weight:700}
+.hero{padding:48px 5%;background:linear-gradient(120deg,#e0f5eb,#edf3ff)}
+.hero-inner,main{max-width:1000px;margin:auto}
+.eyebrow{color:var(--green);font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.8rem}
+h1{margin:.3em 0;font-size:clamp(2rem,7vw,3.5rem);line-height:1.12;color:#075b43}
+.hero p{max-width:650px;font-size:1.05rem;color:#344054}
+.btn{display:inline-block;border:0;border-radius:9px;padding:11px 16px;background:var(--green);color:white;text-decoration:none;font-weight:700;cursor:pointer;font-size:1rem}
+.btn.secondary{background:white;color:var(--green);border:2px solid var(--green)}
+main{padding:28px 5% 54px}
+h2{color:var(--blue);font-size:1.65rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.card{background:white;padding:17px;border-radius:13px;box-shadow:0 5px 20px #17324d0c;border:1px solid #e1e9e5}
+.card h3{margin:.3rem 0}
+.card .emoji{font-size:1.8rem}
+.subject-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.small{font-size:.88rem;color:var(--muted)}
+#exercise-area{margin-top:26px;background:white;padding:20px;border-radius:14px;border:1px solid #dce7e1}
+select{width:100%;max-width:420px;padding:12px;border:1px solid #b8c8c0;border-radius:8px;font-size:1rem;background:white}
+.question{padding:14px 0;border-bottom:1px solid #e7ece9}
+.question p{margin:0 0 8px;font-weight:600}
+.question label{display:block;margin:7px 0;font-weight:400}
+input[type=radio]{margin-right:8px}
+.feedback{font-weight:700;margin-top:8px}
+.notice{background:#fff8df;border-left:4px solid #d8a51d;padding:12px 14px;border-radius:8px;color:#5d4b16}
+footer{background:#12352c;color:#e6f4ef;text-align:center;padding:20px}
+@media(max-width:500px){header{align-items:flex-start}.hero{padding-top:38px;padding-bottom:38px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">🎓 École Charité</div>
+  <nav aria-label="Navigation principale"><a href="#accueil">Accueil</a><a href="#matieres">Matières</a><a href="#exercices">S'entraîner</a></nav>
+</header>
+<section class="hero" id="accueil"><div class="hero-inner">
+  <div class="eyebrow">Bobo-Dioulasso · Burkina Faso</div>
+  <h1>Apprenons ensemble pour réussir</h1>
+  <p>Choisis une matière, entraîne-toi avec les sujets et vérifie tes réponses automatiquement.</p>
+  <a class="btn" href="#matieres">Commencer</a>
+  <button class="btn secondary" id="share-app" type="button" style="margin-left:8px">Partager l’application</button>
+</div></section>
+<main>
+<section id="matieres">
+<h2>Toutes les matières</h2>
+<p>Sélectionne une matière pour afficher un sujet d'entraînement avec correction automatique.</p>
+<div class="cards" id="subject-cards"></div>
+</section>
+<section id="exercices">
+<h2>Zone d'entraînement</h2>
+<div id="exercise-area">
+  <label for="subject-select"><strong>Choisir une matière :</strong></label><br>
+  <select id="subject-select"><option value="">-- Sélectionne une matière --</option></select>
+  <div id="quiz"></div>
+</div>
+</section>
+<section id="assistant" style="margin-top:32px">
+<h2>Pose ta question</h2>
+<p>Pose une question sur les matières scolaires. Cette version répond à quelques questions fréquentes hors ligne ; elle ne peut pas encore faire toutes les recherches sur Internet.</p>
+<div class="card">
+<label for="ask-input"><strong>Ta question :</strong></label>
+<textarea id="ask-input" rows="3" placeholder="Ex. : Explique-moi les fractions..." style="display:block;width:100%;margin:10px 0;padding:12px;border:1px solid #b8c8c0;border-radius:8px;font:inherit"></textarea>
+<button class="btn" id="ask-button" type="button">Répondre</button>
+<div id="ask-answer" aria-live="polite" style="margin-top:16px"></div>
+</div>
+</section>
+<section style="margin-top:28px">
+<h2>À propos</h2>
+<div class="notice">Ces sujets sont des exercices d'entraînement créés pour ce site. Ils ne sont pas des sujets officiels d'examen. D'autres niveaux et chapitres pourront être ajoutés.</div>
+</section>
+</main>
+<footer>© <span id="year"></span> École Charité · Bobo-Dioulasso</footer>
+<script>
+const subjects = {
+  "Mathématiques": {emoji:"➗", desc:"Calculs, fractions et équations", questions:[
+    {q:"Calcule : 7 × 8 =", options:["54","56","64"], a:1, why:"7 × 8 = 56."},
+    {q:"Résous : x + 5 = 12", options:["x = 7","x = 17","x = 6"], a:0, why:"On soustrait 5 aux deux membres : x = 12 − 5 = 7."},
+    {q:"Combien vaut 3/4 + 1/4 ?", options:["4/8","1","3/8"], a:1, why:"3/4 + 1/4 = 4/4 = 1."}
+  ]},
+  "Français": {emoji:"📚", desc:"Grammaire et conjugaison", questions:[
+    {q:"Dans « Les élèves travaillent », quel est le sujet ?", options:["travaillent","Les élèves","élèves travaillent"], a:1, why:"« Les élèves » est le groupe sujet."},
+    {q:"Quel est le pluriel de « cheval » ?", options:["chevals","chevaux","chevaus"], a:1, why:"Le pluriel courant de cheval est chevaux."},
+    {q:"Complète : Hier, nous ___ au marché.", options:["allons","irons","sommes allés"], a:2, why:"« Hier » indique le passé ; « nous sommes allés » est au passé composé."}
+  ]},
+  "Anglais": {emoji:"🌍", desc:"Vocabulaire et grammaire", questions:[
+    {q:"Que signifie « book » en français ?", options:["stylo","livre","table"], a:1, why:"Book signifie livre."},
+    {q:"Complète : She ___ a student.", options:["are","am","is"], a:2, why:"Avec « she », on utilise « is »."},
+    {q:"Quel est le pluriel de « child » ?", options:["childs","children","childes"], a:1, why:"Le pluriel irrégulier de child est children."}
+  ]},
+  "Physique-Chimie": {emoji:"🔬", desc:"Énergie, matière et mesures", questions:[
+    {q:"Quelle est l'unité de la force ?", options:["Le newton (N)","Le kilogramme (kg)","Le litre (L)"], a:0, why:"La force se mesure en newtons (N)."},
+    {q:"Quelle formule donne la vitesse moyenne ?", options:["v = d × t","v = d / t","v = t / d"], a:1, why:"La vitesse moyenne est la distance divisée par le temps."},
+    {q:"À pression normale, l'eau bout environ à :", options:["0 °C","50 °C","100 °C"], a:2, why:"À la pression atmosphérique normale, l'eau bout vers 100 °C."}
+  ]},
+  "Histoire-Géographie": {emoji:"🗺️", desc:"Repères historiques et géographiques", questions:[
+    {q:"Quelle est la capitale du Burkina Faso ?", options:["Bobo-Dioulasso","Ouagadougou","Koudougou"], a:1, why:"La capitale du Burkina Faso est Ouagadougou."},
+    {q:"Sur quel continent se trouve le Burkina Faso ?", options:["Afrique","Asie","Europe"], a:0, why:"Le Burkina Faso se trouve en Afrique de l'Ouest."},
+    {q:"Une carte sert principalement à :", options:["Mesurer la température","Représenter un espace","Peser un objet"], a:1, why:"Une carte représente un espace géographique."}
+  ]},
+  "SVT": {emoji:"🌱", desc:"Corps humain et êtres vivants", questions:[
+    {q:"Quel organe pompe le sang ?", options:["Le poumon","Le cœur","L'estomac"], a:1, why:"Le cœur propulse le sang dans l'organisme."},
+    {q:"Les plantes absorbent principalement l'eau par :", options:["Les racines","Les fleurs","Les fruits"], a:0, why:"Les racines absorbent l'eau et les sels minéraux du sol."},
+    {q:"Quel gaz respirons-nous pour vivre ?", options:["L'oxygène","Le dioxyde de carbone","L'hélium"], a:0, why:"L'oxygène de l'air est nécessaire à la respiration humaine."}
+  ]},
+  "Informatique": {emoji:"💻", desc:"Numérique et programmation", questions:[
+    {q:"HTML sert principalement à :", options:["Structurer une page web","Peindre un mur","Calculer une masse"], a:0, why:"HTML définit la structure et le contenu d'une page web."},
+    {q:"CSS sert principalement à :", options:["Décorer une page web","Stocker de l'eau","Remplacer le clavier"], a:0, why:"CSS gère la présentation visuelle d'une page web."},
+    {q:"Que signifie généralement « bug » en informatique ?", options:["Une erreur dans un programme","Un écran neuf","Une connexion rapide"], a:0, why:"Un bug est un défaut ou une erreur dans un logiciel."}
+  ]},
+  "Éducation civique": {emoji:"🤝", desc:"Droits, devoirs et vie en société", questions:[
+    {q:"Respecter le bien public, c'est :", options:["Le dégrader","Le protéger","Le voler"], a:1, why:"Le bien public appartient à la collectivité et doit être protégé."},
+    {q:"Dans une école, les règles servent à :", options:["Favoriser la vie collective","Empêcher tout apprentissage","Créer des disputes"], a:0, why:"Les règles aident à vivre et travailler ensemble."},
+    {q:"En cas de désaccord, il vaut mieux :", options:["Se battre","Dialoguer calmement","Insulter"], a:1, why:"Le dialogue calme aide à résoudre les conflits."}
+  ]}
+};
+const cards=document.getElementById('subject-cards');
+const select=document.getElementById('subject-select');
+const quiz=document.getElementById('quiz');
+Object.entries(subjects).forEach(([name,s])=>{
+  const card=document.createElement('article'); card.className='card';
+  card.innerHTML=`<div class="emoji">${s.emoji}</div><h3>${name}</h3><p>${s.desc}</p><div class="subject-actions"><button class="btn" type="button">Faire le sujet</button></div>`;
+  card.querySelector('button').addEventListener('click',()=>{select.value=name;renderQuiz(name);document.getElementById('exercices').scrollIntoView({behavior:'smooth'});});
+  cards.appendChild(card);
+  const option=document.createElement('option'); option.value=name; option.textContent=name; select.appendChild(option);
+});
+function renderQuiz(name){
+  quiz.innerHTML='';
+  if(!name){return;}
+  const data=subjects[name];
+  const title=document.createElement('h3'); title.textContent=`Sujet d'entraînement — ${name}`; quiz.appendChild(title);
+  const form=document.createElement('form'); form.id='quiz-form';
+  data.questions.forEach((item,i)=>{
+    const block=document.createElement('div'); block.className='question';
+    const q=document.createElement('p'); q.textContent=`${i+1}. ${item.q}`; block.appendChild(q);
+    item.options.forEach((option,j)=>{
+      const label=document.createElement('label');
+      const radio=document.createElement('input'); radio.type='radio'; radio.name=`q${i}`; radio.value=j; radio.required=true;
+      label.appendChild(radio); label.appendChild(document.createTextNode(option)); block.appendChild(label);
+    });
+    form.appendChild(block);
+  });
+  const submit=document.createElement('button'); submit.className='btn'; submit.type='submit'; submit.textContent='Corriger mon sujet'; submit.style.marginTop='16px'; form.appendChild(submit);
+  const result=document.createElement('div'); result.id='quiz-result'; result.setAttribute('aria-live','polite'); form.appendChild(result);
+  form.addEventListener('submit',e=>{
+    e.preventDefault(); let score=0;
+    const old=form.querySelectorAll('.feedback'); old.forEach(el=>el.remove());
+    data.questions.forEach((item,i)=>{
+      const chosen=form.querySelector(`input[name="q${i}"]:checked`);
+      const correct=Number(chosen.value)===item.a; if(correct)score++;
+      const feedback=document.createElement('p'); feedback.className='feedback'; feedback.style.color=correct?'#087f5b':'#b42318';
+      feedback.textContent=`${correct?'Bonne réponse !':'Réponse incorrecte.'} ${item.why}`;
+      form.querySelectorAll('.question')[i].appendChild(feedback);
+    });
+    result.innerHTML=`<h3>Résultat : ${score}/${data.questions.length}</h3><p>${score===data.questions.length?'Excellent travail !':score>=2?'Bien joué, révise les corrections pour progresser.':'Continue à t’entraîner : lis les corrections puis réessaie.'}</p>`;
+    result.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+  quiz.appendChild(form);
+}
+select.addEventListener('change',()=>renderQuiz(select.value));
+
+const askInput=document.getElementById('ask-input');
+const askAnswer=document.getElementById('ask-answer');
+function answerQuestion(raw){
+  const q=raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(!q) return "Écris d'abord une question.";
+  if(/bonjour|salut|bonsoir|coucou/.test(q)) return "Bonjour ! Bienvenue sur le site de l'École Charité. Pose-moi une question de cours.";
+  if(/fraction/.test(q)) return "Une fraction représente une partie d'un tout. Dans 3/4, 3 est le numérateur et 4 le dénominateur. Exemple : 1/4 + 2/4 = 3/4.";
+  if(/equation|resous|resoudre/.test(q)) return "Pour résoudre une équation, isole l'inconnue en faisant la même opération des deux côtés. Exemple : x + 5 = 12, donc x = 12 − 5 = 7.";
+  if(/pythagore|triangle rectangle/.test(q)) return "Dans un triangle rectangle, le théorème de Pythagore dit que c² = a² + b² : le carré de l'hypoténuse égale la somme des carrés des deux autres côtés.";
+  if(/conjugaison|verbe|passe compose/.test(q)) return "Au passé composé, on utilise généralement avoir ou être au présent + le participe passé. Exemples : j'ai mangé ; elle est partie.";
+  if(/sujet|grammaire/.test(q)) return "Pour trouver le sujet, demande « qui est-ce qui ? » avant le verbe. Exemple : « Les élèves lisent » → qui lit ? Les élèves.";
+  if(/anglais|english|translate|tradu/.test(q)) return "Quelques bases : hello = bonjour ; book = livre ; school = école ; I am = je suis ; you are = tu es/vous êtes ; she is = elle est.";
+  if(/vitesse|physique|force|newton/.test(q)) return "La vitesse moyenne se calcule par v = distance ÷ temps. La force se mesure en newtons (N). Envoie les valeurs de ton exercice pour que je t'aide à le résoudre.";
+  if(/burkina|capitale|geographie/.test(q)) return "Le Burkina Faso est un pays d'Afrique de l'Ouest. Sa capitale est Ouagadougou. Bobo-Dioulasso est l'une de ses grandes villes.";
+  if(/html|css|program|code|informatique/.test(q)) return "HTML structure le contenu d'une page web, CSS définit son apparence et JavaScript ajoute des interactions.";
+  if(/coeur|plante|racine|svt|respiration/.test(q)) return "En SVT : le cœur fait circuler le sang, les racines absorbent l'eau et les sels minéraux, et la respiration humaine utilise l'oxygène.";
+  if(/histoire|civique|droit|devoir/.test(q)) return "L'histoire étudie les événements du passé. L'éducation civique aide à comprendre les droits, les devoirs et le respect des règles communes.";
+  if(/merci/.test(q)) return "Avec plaisir ! Tu peux poser une autre question.";
+  return "Je ne trouve pas de réponse adaptée dans cette version hors ligne. Pour répondre à presque n'importe quelle question et faire des recherches Internet, il faudra connecter le site à un service d'IA ou de recherche en ligne.";
+}
+document.getElementById('ask-button').addEventListener('click',()=>{
+  askAnswer.textContent=answerQuestion(askInput.value);
+  askAnswer.style.padding='12px';
+  askAnswer.style.background='#eef8f2';
+  askAnswer.style.borderRadius='8px';
+});
+
+
+const shareButton=document.getElementById('share-app');
+if(shareButton){
+  shareButton.addEventListener('click',async()=>{
+    const shareData={title:'École Charité',text:'Découvre École Charité : sujets scolaires et entraînement.',url:location.href};
+    try{
+      if(navigator.share){await navigator.share(shareData);}
+      else if(navigator.clipboard){await navigator.clipboard.writeText(location.href);alert('Lien copié ! Tu peux le partager.');}
+      else {prompt('Copie le lien de cette page :',location.href);}
+    }catch(e){}
+  });
+}
+
+document.getElementById('year').textContent=new Date().getFullYear();
+</script>
+</body>
+</html>
